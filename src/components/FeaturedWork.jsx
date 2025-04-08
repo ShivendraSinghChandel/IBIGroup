@@ -12,6 +12,8 @@ const FeaturedWork = () => {
 
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [flashProgress, setFlashProgress] = useState(false);
+
   const videoRef = useRef(null);
   const progressIntervalRef = useRef(null);
 
@@ -29,14 +31,25 @@ const FeaturedWork = () => {
     if (videoRef.current) {
       const video = videoRef.current;
       video.currentTime = 0;
-      video.play().catch(err => console.error("Video play error:", err));
 
+      // Step 1: Flash progress to 100%
+      setFlashProgress(true);
+
+      // Step 2: Reset flash and start video
+      setTimeout(() => {
+        setFlashProgress(false);
+        video.play().catch(err => console.error("Video play error:", err));
+      }, 200);
+
+      // Clear previous interval
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
 
+      // Track progress
       progressIntervalRef.current = setInterval(() => {
         if (video.duration) {
           const progressValue = (video.currentTime / video.duration) * 100;
           setProgress(progressValue);
+
           if (progressValue >= 99.5) {
             goToNextVideo();
           }
@@ -49,7 +62,7 @@ const FeaturedWork = () => {
 
   return (
     <div className="relative py-10 sm:py-16 bg-black text-white">
-      <div className="container mx-auto px-3 sm:px-5 lg:px-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:py-20 py-12 gap-4">
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight">
@@ -88,19 +101,22 @@ const FeaturedWork = () => {
                     onClick={() => handleProgressBarClick(index)}
                   >
                     <div
-                      className={`h-full transition-[width] ease-linear duration-[2000ms] ${index === currentVideoIndex ? 'bg-white' : 'bg-gray-500'
-                        }`}
+                      className={`h-full transition-all duration-200 ease-out ${
+                        index === currentVideoIndex
+                          ? 'bg-white'
+                          : 'bg-gray-500'
+                      }`}
                       style={{
                         width:
                           index === currentVideoIndex
-                            ? `${progress}%`
-                            : index < currentVideoIndex
+                            ? flashProgress
                               ? '100%'
-                              : '0%'
+                              : `${progress}%`
+                            : index < currentVideoIndex
+                            ? '100%'
+                            : '0%'
                       }}
                     />
-
-
                   </div>
                 ))}
               </div>
